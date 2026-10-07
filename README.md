@@ -359,7 +359,7 @@ python3 ~/link_eval/rssi_loss.py <bag dir> [robot1]
 - [SigLIP 2 (`google/siglip2-base-patch16-224`)](https://huggingface.co/google/siglip2-base-patch16-224) — VLM
 - [RTAB-Map](https://github.com/introlab/rtabmap_ros), [Nav2](https://github.com/ros-navigation/navigation2), [slam_toolbox](https://github.com/SteveMacenski/slam_toolbox)
 - [OrbbecSDK_ROS2](https://github.com/orbbec/OrbbecSDK_ROS2), [sllidar_ros2](https://github.com/Slamtec/sllidar_ros2), [rf2o_laser_odometry](https://github.com/MAPIRlab/rf2o_laser_odometry)
-- `frontier_exploration_ros2` — 프런티어 탐색 (원 저장소 링크 <!-- TODO: 확인 -->)
+- [mertgulerx/frontier_exploration_ros2](https://github.com/mertgulerx/frontier_exploration_ros2) — 프런티어 탐색
 
 ---
 
