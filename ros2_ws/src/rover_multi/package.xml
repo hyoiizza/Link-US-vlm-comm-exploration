@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>rover_multi</name>
+  <version>0.1.0</version>
+  <description>Multi-robot bringup (namespaces, TF prefixes) and shared world frame for the rovers</description>
+  <maintainer email="songhyojung0807@gmail.com">hyo</maintainer>
+  <license>Apache-2.0</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>rcl_interfaces</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>robot_localization</exec_depend>
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>rtabmap_slam</exec_depend>
+  <exec_depend>rf2o_laser_odometry</exec_depend>
+  <exec_depend>sllidar_ros2</exec_depend>
+  <exec_depend>bno08x_driver</exec_depend>
+  <exec_depend>orbbec_camera</exec_depend>
+  <exec_depend>rover_bringup</exec_depend>
+  <exec_depend>rover_description</exec_depend>
+  <exec_depend>rover_localization</exec_depend>
+  <exec_depend>rover_motor_controller_cpp</exec_depend>
+  <exec_depend>rover_object</exec_depend>
+  <exec_depend>rover_semantic</exec_depend>
+  <exec_depend>rover_navigation</exec_depend>
+  <exec_depend>rover_msgs</exec_depend>
+  <exec_depend>nav2_msgs</exec_depend>
+  <exec_depend>action_msgs</exec_depend>
+  <exec_depend>tf2_geometry_msgs</exec_depend>
+  <exec_depend>frontier_exploration_ros2</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

@@ -1,0 +1,44 @@
+# ROS 2 / colcon build output
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+ros2_ws/src/*/build/
+ros2_ws/src/*/install/
+ros2_ws/src/*/log/
+
+# Recorded data (rosbag, RTAB-Map DB)
+bags/
+bags_recovered/
+bags_robot2/
+*.db3
+*.db
+*.mcap
+
+# Large model files: regenerate with scripts/build_engine.sh, export_onnx.py
+# (YOLO weights best.onnx, 9 MB, are kept)
+*.engine
+*.onnx
+*.plan
+!ros2_ws/src/rover_object/models/best.onnx
+
+# Large analysis arrays in vlm_check
+vlm_check/**/*.npy
+vlm_check/**/*.npz
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+vlm_tools/
+.venv/
+venv/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.pem

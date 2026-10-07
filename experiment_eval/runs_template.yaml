@@ -1,0 +1,20 @@
+# Experiment runs. Coordinates: world = robot1 start mark (x forward, y left), in meters.
+defaults:
+  q_min: -70.0            # team.yaml selection.q_min
+  outage_gap_s: 4.0       # heartbeat gap counted as a communication outage
+  time_limit_s: 900       # a run that has not seen the person by then is a failure
+  max_range_m: 6.0        # same view range as the VLM (vlm.yaml)
+  occlusion_margin_m: 0.5
+  person_heights_m: [0.5, 0.9, 1.3]   # points of the person checked for visibility (standing)
+persons:                  # tape-measured from robot1's start mark
+  P1: [8.0, 3.5]
+  P2: [12.0, -2.0]
+output: ~/experiment_eval/results
+runs:
+  - name: r01
+    method: proposed      # frontier | comm_aware | semantic_only | proposed
+    person: P1
+    bag: ~/bags/<robot1 bag dir>
+    dbs:
+      robot1: ~/maps/<robot1 run>.db
+      robot2: ~/maps/<robot2 run, copied from robot2>.db

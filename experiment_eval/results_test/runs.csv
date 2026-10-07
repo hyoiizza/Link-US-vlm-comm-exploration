@@ -1,0 +1,2 @@
+run,method,person,success,T_rel_s,found_by,found_dist_m,D_total_found_m,D_total_end_m,R_out_rssi,R_out_hb,area_found_m2,area_end_m2,goal_switches,nav_failures,selections,mean_S,mean_G,mean_D,mean_Q,duration_s
+t0151,proposed,P_test,0,nan,,,86.2,86.2,0.0,nan,370.9,370.9,25,12,34,0.49,0.663,0.417,-49.0,851.0

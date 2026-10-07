@@ -1,0 +1,118 @@
+{
+  "model_id": "google/siglip2-base-patch32-256",
+  "architecture": "siglip",
+  "onnx": {
+    "vision_encoder": "models/siglip2-base-patch32-256/vision_encoder.onnx",
+    "text_encoder": "models/siglip2-base-patch32-256/text_encoder.onnx"
+  },
+  "embedding_dim": 768,
+  "logit_scale": 4.717002868652344,
+  "logit_bias": -16.766876220703125,
+  "similarity_note": "SigLIP uses a sigmoid (not softmax) similarity head: logits = logit_scale * (normalize(image_embeds) @ normalize(text_embeds).T) + logit_bias. L2-normalize both embeddings before comparing, and apply sigmoid to get a per-pair probability (no softmax across candidates is required, unlike CLIP).",
+  "image_preprocessing": {
+    "image_size": {
+      "height": 256,
+      "width": 256
+    },
+    "channel_order": "RGB",
+    "layout": "NCHW",
+    "resize": {
+      "do_resize": true,
+      "resample": "bilinear",
+      "resample_pil_code": 2
+    },
+    "rescale": {
+      "do_rescale": true,
+      "rescale_factor": 0.00392156862745098
+    },
+    "normalize": {
+      "do_normalize": true,
+      "mean": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "std": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "steps_in_order": [
+      "1. Convert image to RGB",
+      "2. Resize to 256x256 using bilinear interpolation (no aspect-ratio preservation, no center crop)",
+      "3. Rescale pixel values: pixel * 0.00392156862745098 (i.e. divide by 255)",
+      "4. Normalize per channel: (pixel - mean) / std, mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)",
+      "5. Transpose HWC -> CHW and add batch dimension -> shape (batch, 3, H, W), dtype float32"
+    ]
+  },
+  "text_preprocessing": {
+    "tokenizer_type": "GemmaTokenizer",
+    "tokenizer_files_dir": "models/siglip2-base-patch32-256/tokenizer/",
+    "vocab_size": 256000,
+    "max_length": 64,
+    "padding": "max_length",
+    "truncation": true,
+    "add_bos_token": false,
+    "add_eos_token": true,
+    "pad_token": "<pad>",
+    "pad_token_id": 0,
+    "eos_token": "<eos>",
+    "eos_token_id": 1,
+    "bos_token": "<bos>",
+    "bos_token_id": 2,
+    "unk_token": "<unk>",
+    "unk_token_id": 3,
+    "attention_mask_required": false,
+    "canonicalization": "None required (raw text is tokenized as-is; no manual lowercasing/punctuation-stripping step).",
+    "steps_in_order": [
+      "1. Tokenize raw prompt text with the SentencePiece/Gemma tokenizer (no lowercasing needed)",
+      "2. Do NOT prepend <bos> (add_bos_token=false)",
+      "3. Append <eos> (id=1) after the tokenized text (add_eos_token=true)",
+      "4. Pad with <pad> (id=0) on the right up to max_length=64",
+      "5. If longer than 64 tokens (including eos), truncate to 64",
+      "6. Feed only input_ids (int64) to the ONNX text encoder; no attention_mask input is used"
+    ]
+  },
+  "onnx_export": {
+    "opset": 14,
+    "vision_encoder": {
+      "input": {
+        "name": "pixel_values",
+        "shape": [
+          "batch_size",
+          3,
+          256,
+          256
+        ],
+        "dtype": "float32"
+      },
+      "output": {
+        "name": "image_embeds",
+        "shape": [
+          "batch_size",
+          768
+        ],
+        "dtype": "float32"
+      }
+    },
+    "text_encoder": {
+      "input": {
+        "name": "input_ids",
+        "shape": [
+          "batch_size",
+          64
+        ],
+        "dtype": "int64"
+      },
+      "output": {
+        "name": "text_embeds",
+        "shape": [
+          "batch_size",
+          768
+        ],
+        "dtype": "float32"
+      }
+    }
+  }
+}

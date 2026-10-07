@@ -1,0 +1,11 @@
+# Test on the 2026-10-01 01:51 single-robot run (person estimated from node 94 depth).
+defaults: {q_min: -70.0, time_limit_s: 900}
+persons:
+  P_test: [4.86, -0.66]
+output: ~/experiment_eval/results_test
+runs:
+  - name: t0151
+    method: proposed
+    person: P_test
+    bag: ~/bags_recovered/0151/rec_0.db3
+    dbs: {robot1: ~/maps/1001_015109_robot1_proposed.db}

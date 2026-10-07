@@ -1,0 +1,158 @@
+# Multi-robot task allocation parameters.
+#   team_coordinator : upper layer, runs on the leader robot (robot1)
+#   team_agent       : lower layer, one per robot (/<robot>/team_agent)
+# All distances in meters, times in seconds.
+
+team_coordinator:
+  ros__parameters:
+    world_frame: world
+    robots: [robot1, robot2]
+    host_robot: robot1          # robot running this node (set by robot.launch.py)
+
+    heartbeat:
+      period_s: 1.0             # how often the coordinator announces itself
+      timeout_s: 4.0            # robot silent this long -> considered lost, its task is re-auctioned
+
+    candidates:
+      merge_radius_m: 1.0       # candidates from both robots closer than this are one task
+                                # (keep >= expected map misalignment between the robots)
+      max_age_s: 10.0           # drop a robot's candidates if not refreshed within this time
+      completed_hold_s: 5.0     # a just-reached task's area is not re-auctioned for this long
+                                # (its frontier lingers until the map/frontier search updates)
+
+    auction:
+      bid_window_s: 2.0         # time robots get to bid after an announcement
+      reevaluate_period_s: 8.0  # periodic re-auction to pick up new frontiers
+      switch_threshold: 0.25    # periodic re-auction may only replace a robot's current task
+                                # if the new utility is this much better (0.25 = +25%).
+                                # Prevents robots from oscillating between goals.
+
+    ssi:
+      near_assigned_radius_m: 3.0   # tasks this close to one already awarded in the same round ...
+      near_assigned_penalty: 0.5    # ... lose this fraction of their utility (spreads robots out)
+
+    failure:
+      penalty_radius_m: 1.0     # a failed task also penalises candidates within this radius
+      utility_penalty: 0.3      # utility lost per failure there (fraction of |utility|, max 0.9)
+      max_failures: 2           # failures before the area is blacklisted
+      blacklist_duration_s: 60.0
+
+    # How bids become goals (see rover_multi/goal_selection.py):
+    #   auction              sequential single-item auction on the robots' utilities (ssi above)
+    #   joint selection, the same U = alpha*S + (1-alpha)*G - lambda*D for every method;
+    #   methods without semantics use S = semantic_default (constant) for every frontier:
+    #     frontier       S no,  Q >= q_min no
+    #     comm_aware     S no,  Q >= q_min yes
+    #     semantic_only  S yes, Q >= q_min no
+    #     proposed       S yes, Q >= q_min yes
+    # Until the link model exists Q is unknown, so comm_aware/proposed find no feasible goal.
+    selection:
+      method: auction
+      alpha: 0.5                # S and G both in [0, 1]: equal weight. Replay of run 0151:
+                                # alpha .3/.5/.7 changed 10/11/16 of 45 choices vs no S (~/param_eval)
+      lambda: 1.0               # sigma_G / sigma_L over 139 recorded selections = 0.041 per m
+                                # (95% CI 0.037-0.046) x d_ref 25 -> 1.0 (~/param_eval/lambda_calib.py)
+      g_ref: 700.0              # unknown cells counted as full gain (G = 1): the whole 1.5 m disc
+                                # (team_agent gain.unknown_radius_m) at the 0.1 m rtabmap grid
+      d_ref: 25.0               # path cost [m] counted as full cost (D = 1): ~max recorded path
+                                # (p95 20 m, max 30 m -> D clipped for 1.6 % of candidates)
+      q_min: -70.0              # minimum predicted link quality (RSSI dBm): loss starts at about -73 dBm
+                                # (linkus, 2026-10-01 linktest2) minus ~3 dB for the prediction error;
+                                # ~13.8 m from the AP with the linkus fit. Back to this full-size setting on
+                                # 2026-10-02 22:50 (targets 20 m away; -52 excluded every frontier in p6/p7).
+                                # Small-room setting was -52 (~4.9 m).
+                                # -70 (loss starts at about -73 dBm, 2026-10-01 linktest2, minus ~3 dB)
+      unobserved_semantic: mean_view  # S of a frontier no camera view has seen:
+                                # mean_view = the robot's mean S over all its views so far (neutral),
+                                # constant = semantic_default
+      semantic_default: 0.5     # S without an observation and before the first view
+      bid_window_s: 15.0        # joint selection plans every candidate, so robots need longer to bid.
+                                # 2026-10-02: robot2 (pure-Python Dijkstra, scipy broken by numpy 2) bids 9.7 s
+                                # after the announcement (p90 12.8 s, b_base_10): with 6 s it never got a goal.
+                                # The window closes as soon as every robot has bid, so robot1 alone is not slowed.
+      goal_vanished_s: 4.0      # re-select when a busy robot's goal was no frontier for this long
+      keep_goal_bonus: 0.1      # a re-selection keeps a robot's current goal unless another
+                                # frontier beats it by this much utility (stops goal flip-flopping)
+
+    # Link model (rover_multi/link_model.py): Q = predicted RSSI [dBm] at the frontier,
+    # log-distance path loss around the AP fitted to /team/link_quality + measured residuals.
+    link:
+      ap_x: -0.25               # AP position in world (2026-10-01: iPhone hotspot on the floor at robot1's
+      ap_y: 0.30                #  rear-left wheel at the start); with estimate_ap only the initial guess
+      estimate_ap: false        # true: also fit the AP position (needs spread-out samples)
+                                # linkus at the start: false (the AI_ROBOTICS router, position unknown: true)
+      ap_search_radius_m: 15.0
+      ap_prior_sigma_m: 8.0
+      p0_prior_dbm: -24.0       # prior RSSI at 1 m (linkus fit 2026-10-01; generic indoor -40)
+      n_prior: 4.04             # prior path-loss exponent (linkus fit 2026-10-01; generic indoor 3)
+      prior_weight: 20.0        # the prior counts as this many (binned) samples
+      residual_radius_m: 2.0    # measured residuals correct predictions this close
+      min_samples: 20           # Q is unknown (-> comm methods have no goal) before this many
+      fit_period_s: 5.0
+      wait_margin_db: 3.0       # no feasible goal: wait where the link was >= q_min + this
+      drop_reselect_s: 3.0      # re-select when a driving robot's link is < q_min this long
+
+
+/**/team_agent:
+  ros__parameters:
+    world_frame: world
+
+    heartbeat:
+      period_s: 1.0
+      timeout_s: 4.0            # coordinator silent this long -> switch to standalone mode
+
+    candidates:
+      top_k: 10                 # best frontiers (by explorer score) sent to the coordinator
+      publish_period_s: 2.0
+
+    bid:
+      gain_weight: 1.0          # utility = gain_weight * gain - distance_weight * path_cost
+      distance_weight: 0.5      # utility lost per meter of path (lambda)
+      path_source: costmap      # costmap: one Dijkstra over global_costmap/costmap for every task
+                                # (rover_multi/grid_paths.py, ~0.35 s for a 50 x 50 m map);
+                                # planner: one Nav2 ComputePathToPose per task - shares the
+                                # planner_server with navigation and made its goals abort (2026-10-01)
+      costmap_topic: global_costmap/costmap
+      costmap_max_age_s: 5.0    # older costmap -> fall back to the planner
+      grid_downsample: 2        # 0.05 m costmap -> 0.1 m cells (min-pooled, keeps doorways open)
+      grid_blocked_cost: 99     # OccupancyGrid cost the robot centre may not enter (99 inscribed)
+      grid_goal_radius_m: 0.3   # goal reached anywhere this close (like the planner tolerance)
+      max_planned: 20           # planner source only: the N closest tasks get a real Nav2 plan
+                                # (joint selection treats unplanned tasks as unreachable)
+      planner_timeout_s: 1.0    # per ComputePathToPose request
+      turn_cost_m_per_rad: 2.0  # path cost += this * |heading change| to the plan's start direction:
+                                # a goal straight behind costs ~6.3 m more (D +0.25 at d_ref 25),
+                                # so the robot keeps going forward instead of turning back
+      turn_lookahead_m: 0.8     # start direction = robot -> plan point this far along the path
+      unplanned_cost_factor: 1.5    # no plan (unknown area / timeout): cost = straight line * factor
+      max_task_distance_m: 30.0     # tasks farther than this (straight line) are not bid on
+
+    standalone:
+      claim_radius_m: 3.0       # avoid frontiers within this radius of the other robot's claim
+      failure_radius_m: 1.0     # no coordinator to blacklist places: remember failures locally ...
+      max_failures: 2           # ... skip a place after this many failures ...
+      blacklist_duration_s: 60.0    # ... for this long
+
+    gain:
+      map_topic: map
+      unknown_radius_m: 1.5     # N_unknown: unknown map cells within this radius of the frontier goal
+
+    vlm:                        # S_j from rover_vlm (robot.launch.py use_vlm:=true)
+      relevance_topic: explore/frontier_relevance
+      match_radius_m: 0.3       # a frontier takes the S reported for a goal this close
+      max_age_s: 5.0            # older relevance messages are ignored (frontier unobserved)
+
+    semantic:
+      # Frontier gain x factor from the semantic map (rover_semantic) around the goal:
+      #   factor = 1 + floor_weight*floor - wall_weight*wall + object_weight*object
+      # floor/wall/object = share of confident cells within radius_m (object = neither
+      # floor nor wall). Set all three weights to 0 to turn this off.
+      grid_topic: semantic_mapper/grid
+      floor_weight: 0.5         # open floor beyond the frontier: room / corridor continues
+      wall_weight: 0.5          # frontier hugging a wall: often a sensor-noise sliver
+      object_weight: 0.5        # furniture / debris / people: worth a look when searching
+      radius_m: 1.0
+      min_known_cells: 20       # fewer confident cells than this -> factor 1 (no evidence)
+      min_confidence: 50        # [0-100] share of votes a cell's class needs to count
+      min_factor: 0.2
+      max_factor: 2.0

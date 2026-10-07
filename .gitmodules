@@ -2,3 +2,17 @@
 	path = ros2_ws/src/ros2_rover
 	url = https://github.com/hyoiizza/ros2_rover.git
 	branch = humble
+[submodule "ros2_ws/src/frontier_exploration_ros2"]
+	path = ros2_ws/src/frontier_exploration_ros2
+	url = https://github.com/hyoiizza/frontier_exploration_ros2.git
+[submodule "ros2_ws/src/sllidar_ros2"]
+	path = ros2_ws/src/sllidar_ros2
+	url = https://github.com/hyoiizza/sllidar_ros2.git
+[submodule "ros2_ws/src/OrbbecSDK_ROS2"]
+	path = ros2_ws/src/OrbbecSDK_ROS2
+	url = https://github.com/hyoiizza/OrbbecSDK_ROS2.git
+	branch = linkus
+[submodule "ros2_ws/src/rf2o_laser_odometry"]
+	path = ros2_ws/src/rf2o_laser_odometry
+	url = https://github.com/Adlink-ROS/rf2o_laser_odometry.git
+	branch = humble-devel

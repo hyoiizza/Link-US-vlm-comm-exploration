@@ -1,0 +1,27 @@
+object_detector:
+  ros__parameters:
+    # Empty -> <share>/rover_object/models/optimized/best_fp16.engine
+    engine_path: ""
+    image_topic: camera/color/image_raw
+    conf_threshold: 0.4
+    iou_threshold: 0.5
+    publish_debug_image: true      # only drawn while someone subscribes
+    max_rate_hz: 3.0               # detections per second (every frame overloaded the Jetson)
+
+object_mapper:
+  ros__parameters:
+    detections_topic: object_detector/detections
+    depth_topic: camera/depth/image_raw        # registered to color (depth_registration: true)
+    camera_info_topic: camera/color/camera_info
+    map_frame: map
+    depth_scale: 0.001
+    min_depth: 0.2
+    max_depth: 8.0
+    roi_scale: 0.4
+    merge_distance:
+      person: 1.0
+      fire: 0.7
+    min_hits: 3
+    position_alpha: 0.3
+    person_timeout: 10.0
+    fire_timeout: 0.0

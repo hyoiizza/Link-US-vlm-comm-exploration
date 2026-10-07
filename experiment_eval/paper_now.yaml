@@ -1,0 +1,10 @@
+runs:
+  - ~/experiment_runs/b_base_6
+  - ~/experiment_runs/p_vlm_1
+  - ~/experiment_runs/p_vlm_2
+  - ~/experiment_runs/p_vlm_3
+  - ~/experiment_runs/p_vlm_4
+time_limit_s: 900
+output: ~/experiment_runs/_paper_20261002
+platform: "6륜 로커-보기 로버 2대 (Jetson Orin Nano 8GB, RPLIDAR C1, Orbbec Gemini 335, LX-16A; robot1만 BNO085 IMU)"
+environment: "실내 복도;"

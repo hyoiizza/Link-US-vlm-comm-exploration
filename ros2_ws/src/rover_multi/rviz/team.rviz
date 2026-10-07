@@ -1,0 +1,429 @@
+# Team view: both robots in the shared "world" frame + the coordinator's goal selection.
+# Needs world_frame_publisher (use_coordinator:=true on the leader robot).
+# The camera image is off by default: raw images over Wi-Fi are ~18 MB/s per robot.
+Panels:
+- Class: rviz_common/Displays
+  Name: Displays
+  Help Height: 0
+  Tree Height: 520
+- Class: rviz_common/Views
+  Name: Views
+Visualization Manager:
+  Class: ''
+  Displays:
+  - Class: rviz_default_plugins/Grid
+    Name: Grid (1 m)
+    Enabled: true
+    Value: true
+    Cell Size: 1
+    Plane Cell Count: 60
+    Reference Frame: <Fixed Frame>
+    Color: 100; 100; 100
+    Alpha: 0.3
+  - Class: rviz_default_plugins/TF
+    Name: TF
+    Enabled: false
+    Value: false
+    Show Names: false
+    Show Axes: true
+    Show Arrows: false
+    Marker Scale: 0.3
+  - Class: rviz_common/Group
+    Name: robot1
+    Enabled: true
+    Value: true
+    Displays:
+    - Class: rviz_default_plugins/Map
+      Name: Map (rtabmap, lidar grid)
+      Enabled: true
+      Value: true
+      Alpha: 0.7
+      Color Scheme: map
+      Draw Behind: true
+      Topic:
+        Depth: 1
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot1/map
+      Update Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot1/map_updates
+    - Class: rviz_default_plugins/Map
+      Name: Global costmap
+      Enabled: false
+      Value: false
+      Alpha: 0.4
+      Color Scheme: costmap
+      Draw Behind: true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot1/global_costmap/costmap
+      Update Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot1/global_costmap/costmap_updates
+    - Class: rviz_default_plugins/Map
+      Name: Local costmap
+      Enabled: true
+      Value: true
+      Alpha: 0.5
+      Color Scheme: costmap
+      Draw Behind: false
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot1/local_costmap/costmap
+      Update Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot1/local_costmap/costmap_updates
+    - Class: rviz_default_plugins/LaserScan
+      Name: Lidar (scan_filtered)
+      Enabled: true
+      Value: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /robot1/scan_filtered
+      Style: Points
+      Size (Pixels): 3
+      Size (m): 0.03
+      Color Transformer: FlatColor
+      Color: 26; 115; 255
+      Alpha: 1
+      Decay Time: 0
+      Selectable: false
+    - Class: rviz_default_plugins/RobotModel
+      Name: Robot model
+      Enabled: true
+      Value: true
+      Description Source: Topic
+      Description Topic:
+        Depth: 1
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot1/robot_description
+      TF Prefix: robot1
+      Alpha: 1
+      Visual Enabled: true
+      Collision Enabled: false
+    - Class: rviz_default_plugins/Odometry
+      Name: Odometry (EKF)
+      Enabled: false
+      Value: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /robot1/odom
+      Keep: 50
+      Position Tolerance: 0.2
+      Angle Tolerance: 0.3
+      Shape:
+        Value: Arrow
+        Color: 26; 115; 255
+        Alpha: 1
+        Shaft Length: 0.3
+        Shaft Radius: 0.03
+        Head Length: 0.1
+        Head Radius: 0.06
+    - Class: rviz_default_plugins/Path
+      Name: Nav2 plan
+      Enabled: true
+      Value: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot1/plan
+      Color: 26; 115; 255
+      Line Style: Lines
+      Line Width: 0.03
+      Alpha: 1
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Frontiers (explorer)
+      Enabled: true
+      Value: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot1/explore/frontiers
+      Namespaces: {}
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Detected objects (person / fire)
+      Enabled: true
+      Value: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot1/object_mapper/objects
+      Namespaces: {}
+    - Class: rviz_default_plugins/Image
+      Name: Camera (color)
+      Enabled: false
+      Value: false
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /robot1/camera/color/image_raw
+      Normalize Range: true
+  - Class: rviz_common/Group
+    Name: robot2
+    Enabled: true
+    Value: true
+    Displays:
+    - Class: rviz_default_plugins/Map
+      Name: Map (rtabmap, lidar grid)
+      Enabled: true
+      Value: true
+      Alpha: 0.7
+      Color Scheme: map
+      Draw Behind: true
+      Topic:
+        Depth: 1
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot2/map
+      Update Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot2/map_updates
+    - Class: rviz_default_plugins/Map
+      Name: Global costmap
+      Enabled: false
+      Value: false
+      Alpha: 0.4
+      Color Scheme: costmap
+      Draw Behind: true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot2/global_costmap/costmap
+      Update Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot2/global_costmap/costmap_updates
+    - Class: rviz_default_plugins/Map
+      Name: Local costmap
+      Enabled: true
+      Value: true
+      Alpha: 0.5
+      Color Scheme: costmap
+      Draw Behind: false
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot2/local_costmap/costmap
+      Update Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot2/local_costmap/costmap_updates
+    - Class: rviz_default_plugins/LaserScan
+      Name: Lidar (scan_filtered)
+      Enabled: true
+      Value: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /robot2/scan_filtered
+      Style: Points
+      Size (Pixels): 3
+      Size (m): 0.03
+      Color Transformer: FlatColor
+      Color: 255; 140; 0
+      Alpha: 1
+      Decay Time: 0
+      Selectable: false
+    - Class: rviz_default_plugins/RobotModel
+      Name: Robot model
+      Enabled: true
+      Value: true
+      Description Source: Topic
+      Description Topic:
+        Depth: 1
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot2/robot_description
+      TF Prefix: robot2
+      Alpha: 1
+      Visual Enabled: true
+      Collision Enabled: false
+    - Class: rviz_default_plugins/Odometry
+      Name: Odometry (EKF)
+      Enabled: false
+      Value: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /robot2/odom
+      Keep: 50
+      Position Tolerance: 0.2
+      Angle Tolerance: 0.3
+      Shape:
+        Value: Arrow
+        Color: 255; 140; 0
+        Alpha: 1
+        Shaft Length: 0.3
+        Shaft Radius: 0.03
+        Head Length: 0.1
+        Head Radius: 0.06
+    - Class: rviz_default_plugins/Path
+      Name: Nav2 plan
+      Enabled: true
+      Value: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot2/plan
+      Color: 255; 140; 0
+      Line Style: Lines
+      Line Width: 0.03
+      Alpha: 1
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Frontiers (explorer)
+      Enabled: true
+      Value: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot2/explore/frontiers
+      Namespaces: {}
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Detected objects (person / fire)
+      Enabled: true
+      Value: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot2/object_mapper/objects
+      Namespaces: {}
+    - Class: rviz_default_plugins/Image
+      Name: Camera (color)
+      Enabled: false
+      Value: false
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /robot2/camera/color/image_raw
+      Normalize Range: true
+  - Class: rviz_common/Group
+    Name: team (coordinator)
+    Enabled: true
+    Value: true
+    Displays:
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Goal selection (S G Q, goals, wait)
+      Enabled: true
+      Value: true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /team/selection_markers
+      Namespaces: {}
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Measured Wi-Fi (RSSI cells)
+      Enabled: true
+      Value: true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /team/link_markers
+      Namespaces: {}
+  Enabled: true
+  Global Options:
+    Background Color: 30; 30; 36
+    Fixed Frame: world
+    Frame Rate: 15
+  Name: root
+  Tools:
+  - Class: rviz_default_plugins/Interact
+    Hide Inactive Objects: true
+  - Class: rviz_default_plugins/MoveCamera
+  - Class: rviz_default_plugins/Select
+  - Class: rviz_default_plugins/Measure
+    Line color: 128; 128; 0
+  - Class: rviz_default_plugins/PublishPoint
+    Single click: true
+    Topic:
+      Depth: 5
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Reliable
+      Value: /clicked_point
+  Transformation:
+    Current:
+      Class: rviz_default_plugins/TF
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/TopDownOrtho
+      Name: Current View
+      Scale: 40
+      X: 5
+      Y: 0
+      Angle: 0
+      Near Clip Distance: 0.01
+      Target Frame: <Fixed Frame>
+      Value: TopDownOrtho (rviz_default_plugins)
+    Saved: null
+Window Geometry:
+  Height: 900
+  Width: 1500
+  Hide Left Dock: false
+  Hide Right Dock: true
+  Displays:
+    collapsed: false
+  Views:
+    collapsed: true

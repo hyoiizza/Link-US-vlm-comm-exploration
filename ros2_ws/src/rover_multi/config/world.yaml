@@ -1,0 +1,11 @@
+# Pose of each robot's map origin (= where its SLAM started) in the shared world frame.
+# world = robot1's start (x forward, y left). robot2 starts at a measured offset from it,
+# same heading. Re-measure if the start setup changes. [x, y, z, yaw(rad)]
+world_frame_publisher:
+  ros__parameters:
+    world_frame: world
+    robots: [robot1, robot2]
+    robot1:
+      initial_pose: [0.0, 0.0, 0.0, 0.0]
+    robot2:
+      initial_pose: [0.0, -1.2, 0.0, 0.0]   # 2026-10-02: robot2 1.2 m right of robot1 (centre to centre), same heading

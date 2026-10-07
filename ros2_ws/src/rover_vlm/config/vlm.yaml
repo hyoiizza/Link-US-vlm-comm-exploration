@@ -1,0 +1,32 @@
+# VLM search-task relevance of this robot's frontiers (rover_vlm/vlm_relevance_node.py).
+# Record model, prompts (in the export JSON), similarity and temperature with every run.
+vlm_relevance:
+  ros__parameters:
+    # Empty -> <share>/rover_vlm/models/siglip2_base_patch16_224_fp16.engine / .json
+    # Lighter variant of the same family: siglip2_base_patch32_256 (64 image tokens instead of 196).
+    engine_path: ""
+    meta_path: ""
+    map_frame: map
+    odom_frame: odom            # camera pose at the image stamp comes from odom, then the latest map -> odom
+
+    image_topic: camera/color/image_raw
+    camera_info_topic: camera/color/camera_info
+    depth_topic: camera/depth/image_raw          # registered to color
+    frontier_candidates_topic: explore/frontier_candidates
+
+    n_crops: 3                  # square crops across the image width = engine max batch
+    similarity: scaled          # scaled: the model's logit scale, cosine: scale 1
+    temperature: 1.0            # fix on validation data, then keep for every run
+    normalization: percentile   # percentile: S = rank among all crops this robot has scored (0-1,
+                                # average view 0.5); none: raw two-prompt softmax S
+    min_reference_crops: 30     # percentile needs this many scored crops (10 keyframes) first
+    max_keyframe_rate_hz: 2.0
+    min_translation_m: 0.5      # new keyframe after moving this far ...
+    min_rotation_deg: 15.0      # ... or turning this much
+    max_keyframes: 500
+
+    min_range_m: 0.5            # a keyframe "sees" a frontier this far along its optical axis ...
+    max_range_m: 6.0            # ... up to this far
+    use_depth_occlusion: true   # skip views where the depth image shows something nearer
+    occlusion_margin_m: 0.5
+    depth_max_dt_s: 0.15        # depth frame this close in time to the color frame, else no occlusion test

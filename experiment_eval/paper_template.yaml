@@ -1,0 +1,12 @@
+# Input of paper_outputs.py (tables 1-2, figure 3). Fill in, then:
+#   python3 ~/experiment_eval/paper_outputs.py ~/experiment_eval/paper.yaml
+persons:                      # tape-measured from robot1's start mark: x forward, y left [m]
+  P1: [8.0, 3.5]              # must NOT be visible from the start position
+  P2: [12.0, -2.0]
+runs:                         # run folders from start_pair.sh / stop_pair.sh (method, VLM, person from manifest)
+  - ~/experiment_runs/b_P1_1
+  - ~/experiment_runs/p_P1_1
+time_limit_s: 900
+output: ~/experiment_runs/_paper
+platform: "6륜 로커-보기 로버 2대 (Jetson Orin Nano 8GB, RPLIDAR C1, Orbbec Gemini 335, LX-16A 서보; robot1만 BNO085 IMU)"
+environment: "실내 복도 [가로 × 세로 m 기재];"
