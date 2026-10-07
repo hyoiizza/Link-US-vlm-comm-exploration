@@ -1,7 +1,7 @@
 """Lower layer of the team, one per robot (/<robot>/team_agent).
 
 * forwards the explorer's ranked frontiers to the coordinator (world frame),
-  with their gain re-weighted by the semantic map around them (semantic_gain)
+  with the VLM relevance S (rover_vlm) and the unknown-cell count around them
 * bids on announced tasks with the path length from this robot's Nav2 planner
 * drives to the awarded task with this robot's Nav2 and reports its status
 * standalone mode when the coordinator is lost: picks its own frontiers and
@@ -31,11 +31,10 @@ from tf2_geometry_msgs import do_transform_pose
 from tf2_ros import Buffer, TransformException, TransformListener
 
 from rover_msgs.msg import (
-    AuctionAnnouncement, Award, Bid, BidItem, Claim, FrontierRelevance, Heartbeat, SemanticGrid, TaskCandidate,
+    AuctionAnnouncement, Award, Bid, BidItem, Claim, FrontierRelevance, Heartbeat, TaskCandidate,
     TaskCandidates, TaskStatus)
 from rover_multi import team_interface as team
 from rover_multi.grid_paths import GridPaths
-from rover_multi.semantic_gain import gain_factor, SemanticLayer, SemanticWeights
 
 STATUS_NAMES = {0: 'accepted', 1: 'active', 2: 'succeeded', 3: 'failed', 4: 'canceled', 5: 'idle'}
 
@@ -98,15 +97,6 @@ class TeamAgent(Node):
         self.fail_radius = p('standalone.failure_radius_m', 1.0)
         self.max_failures = p('standalone.max_failures', 2)
         self.blacklist_duration = p('standalone.blacklist_duration_s', 60.0)
-        self.sem_weights = SemanticWeights(
-            floor=p('semantic.floor_weight', 0.5),
-            wall=p('semantic.wall_weight', 0.5),
-            object=p('semantic.object_weight', 0.5),
-            radius=p('semantic.radius_m', 1.0),
-            min_known_cells=p('semantic.min_known_cells', 20),
-            min_confidence=p('semantic.min_confidence', 50),
-            min_factor=p('semantic.min_factor', 0.2),
-            max_factor=p('semantic.max_factor', 2.0))
         self.unknown_radius = p('gain.unknown_radius_m', 1.5)
         self.relevance_match = p('vlm.match_radius_m', 0.3)
         self.relevance_max_age = p('vlm.max_age_s', 5.0)
@@ -129,7 +119,6 @@ class TeamAgent(Node):
         self.peer_seen = {}           # other robot -> rclpy Time of its last heartbeat
         self.failures = []            # standalone mode: [x, y, count, rclpy Time], by position
         self.cand_seq = 0
-        self.semantic = None          # (SemanticLayer, frame_id) of the latest semantic grid
         self.grid = None              # (unknown mask [H, W] bool, resolution, origin x, origin y, frame)
         self.relevance = None         # (rclpy Time, frame, [(x, y, S, observed)]) from rover_vlm
 
@@ -145,11 +134,9 @@ class TeamAgent(Node):
         self.create_subscription(
             FrontierCandidates, p('frontier_candidates_topic', 'explore/frontier_candidates'),
             self.on_frontiers, 10, callback_group=self.cb)
-        # semantic_mapper publishes its grid latched, so a late start still gets the last one.
+        # the map is published latched, so a late start still gets the last one.
         latched = QoSProfile(depth=1, reliability=ReliabilityPolicy.RELIABLE,
                              durability=DurabilityPolicy.TRANSIENT_LOCAL)
-        self.create_subscription(SemanticGrid, p('semantic.grid_topic', 'semantic_mapper/grid'),
-                                 self.on_semantic_grid, latched, callback_group=self.cb)
         self.create_subscription(OccupancyGrid, p('gain.map_topic', 'map'), self.on_map, latched,
                                  callback_group=self.cb)
         if self.path_source == 'costmap':
@@ -184,17 +171,6 @@ class TeamAgent(Node):
         return tf.transform.translation
 
     # --- candidates ------------------------------------------------------------
-    def on_semantic_grid(self, msg):
-        h, w = msg.info.height, msg.info.width
-        if h * w == 0 or len(msg.labels) != h * w or len(msg.confidence) != h * w:
-            return
-        layer = SemanticLayer(
-            np.asarray(msg.labels, dtype=np.uint8).reshape(h, w),
-            np.asarray(msg.confidence, dtype=np.uint8).reshape(h, w),
-            msg.info.resolution, msg.info.origin.position.x, msg.info.origin.position.y, msg.class_names)
-        with self.lock:
-            self.semantic = (layer, msg.header.frame_id or self.map_frame)
-
     def on_map(self, msg):
         h, w = msg.info.height, msg.info.width
         if h * w == 0 or len(msg.data) != h * w:
@@ -227,25 +203,6 @@ class TeamAgent(Node):
         disc = np.hypot(x0 + (jj + 0.5) * res - gx, y0 + (ii + 0.5) * res - gy) <= r
         return float(np.count_nonzero(unknown[i0:i1, j0:j1] & disc))
 
-    def semantic_weight(self, goal, frame):
-        """(gain factor, label) for a frontier goal from the semantic map around it."""
-        with self.lock:
-            semantic = self.semantic
-        if semantic is None:
-            return 1.0, ''
-        layer, grid_frame = semantic
-        if grid_frame != frame:
-            try:
-                goal = self.transform_pose(goal, frame, grid_frame)
-            except TransformException:
-                return 1.0, ''   # no semantic evidence is not a reason to drop the frontier
-        w = self.sem_weights
-        shares = layer.shares(goal.position.x, goal.position.y, w.radius, w.min_confidence)
-        factor = gain_factor(shares, w)
-        if shares.known < w.min_known_cells:
-            return factor, ''
-        return factor, f'floor={shares.floor:.2f} wall={shares.wall:.2f} obj={shares.object:.2f} x{factor:.2f}'
-
     def on_relevance(self, msg):
         entries = [(p.x, p.y, s, o) for p, s, o in zip(msg.positions, msg.relevance, msg.observed)]
         with self.lock:
@@ -274,11 +231,10 @@ class TeamAgent(Node):
         frame = msg.header.frame_id or self.map_frame
         try:
             for i, (goal, gain) in enumerate(zip(msg.goals[:self.top_k], msg.gains)):
-                factor, label = self.semantic_weight(goal, frame)
                 S, observed = self.vlm_relevance(goal, frame)
                 w = self.transform_pose(goal, frame, self.world_frame)
                 c = TaskCandidate(id=f'{self.robot}/{self.cand_seq}.{i}', source_robot=self.robot,
-                                  gain=float(gain * factor), label=label,
+                                  gain=float(gain),
                                   unknown_cells=self.unknown_cells(goal, frame),
                                   semantic_relevance=S, semantic_observed=observed)
                 c.position = w.position

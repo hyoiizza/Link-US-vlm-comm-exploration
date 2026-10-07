@@ -231,17 +231,6 @@ def launch_setup(context):
             }.items(),
         ))
 
-    # --- floor / wall / stairs segmentation of the color camera -----------
-    if _truthy(context, 'use_segmentation'):
-        sem_dir = get_package_share_directory('rover_semantic')
-        actions.append(IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(sem_dir, 'launch', 'semantic_segmentation.launch.py')),
-            launch_arguments={
-                'params_file': cfg(sem_dir, 'semantic_segmentation.yaml'),
-                'use_sim_time': str(sim['use_sim_time']).lower(),
-            }.items(),
-        ))
-
     # --- Nav2: /<robot>/navigate_to_pose, commands on /<robot>/cmd_vel ------
     if _truthy(context, 'use_navigation'):
         nav_dir = get_package_share_directory('rover_navigation')
@@ -407,8 +396,6 @@ def generate_launch_description():
         DeclareLaunchArgument('use_depth_obstacles', default_value='true',
                               description='Low obstacles below the lidar plane from the depth camera '
                                           '(depth_obstacle_scan -> costmaps)'),
-        DeclareLaunchArgument('use_segmentation', default_value='false',
-                              description='Floor / wall / stairs segmentation (rover_semantic)'),
         DeclareLaunchArgument('use_navigation', default_value='false',
                               description='Run Nav2 for this robot'),
         # Smac2D: grid A* + RPP rotating in place (the rover turns on the spot). Only Smac2D_RPP

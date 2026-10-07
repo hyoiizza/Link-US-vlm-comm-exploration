@@ -141,18 +141,3 @@ team_coordinator:
       relevance_topic: explore/frontier_relevance
       match_radius_m: 0.3       # a frontier takes the S reported for a goal this close
       max_age_s: 5.0            # older relevance messages are ignored (frontier unobserved)
-
-    semantic:
-      # Frontier gain x factor from the semantic map (rover_semantic) around the goal:
-      #   factor = 1 + floor_weight*floor - wall_weight*wall + object_weight*object
-      # floor/wall/object = share of confident cells within radius_m (object = neither
-      # floor nor wall). Set all three weights to 0 to turn this off.
-      grid_topic: semantic_mapper/grid
-      floor_weight: 0.5         # open floor beyond the frontier: room / corridor continues
-      wall_weight: 0.5          # frontier hugging a wall: often a sensor-noise sliver
-      object_weight: 0.5        # furniture / debris / people: worth a look when searching
-      radius_m: 1.0
-      min_known_cells: 20       # fewer confident cells than this -> factor 1 (no evidence)
-      min_confidence: 50        # [0-100] share of votes a cell's class needs to count
-      min_factor: 0.2
-      max_factor: 2.0

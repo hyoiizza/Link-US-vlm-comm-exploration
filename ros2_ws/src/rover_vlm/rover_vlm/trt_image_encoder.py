@@ -4,7 +4,7 @@ The engine maps pixel_values [B, 3, S, S] to L2-normalized image embeddings [B, 
 Preprocessing (size, mean, std) and the text side (prompt embeddings, logit scale)
 come from the JSON written next to the ONNX file at export time, so the robot needs
 neither PyTorch nor the tokenizer. GPU memory goes through libcudart via ctypes,
-as in rover_semantic, so no pycuda / cuda-python is needed on the Jetson.
+so no pycuda / cuda-python is needed on the Jetson.
 """
 import ctypes
 import json
