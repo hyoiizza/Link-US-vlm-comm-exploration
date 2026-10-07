@@ -1,0 +1,4 @@
+[submodule "ros2_ws/src/ros2_rover"]
+	path = ros2_ws/src/ros2_rover
+	url = https://github.com/hyoiizza/ros2_rover.git
+	branch = humble
